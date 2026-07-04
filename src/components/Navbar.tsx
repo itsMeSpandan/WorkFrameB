@@ -6,12 +6,6 @@ import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/lib/auth-context";
 import NotificationBell from "@/components/NotificationBell";
 
-const tabs = [
-  { href: "/employees", label: "Employees" },
-  { href: "/attendance", label: "Attendance" },
-  { href: "/time-off", label: "Time Off" },
-];
-
 export default function Navbar() {
   const { user, signout } = useAuth();
   const pathname = usePathname();
@@ -33,10 +27,9 @@ export default function Navbar() {
   if (!user) return null;
 
   const allowedTabs = [
-    { href: "/employees", label: "Employees" },
     { href: "/attendance", label: "Attendance" },
     { href: "/time-off", label: "Time Off" },
-    ...(user.role === "ADMIN" ? [{ href: "/audit-logs", label: "Activity Log" }] : []),
+    ...(user.role === "ADMIN" ? [{ href: "/employees", label: "Employees" }, { href: "/audit-logs", label: "Activity Log" }] : []),
   ];
 
   // Determine active tab based on pathname
@@ -56,7 +49,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14">
           {/* Logo — far left */}
-          <Link href="/employees" className="flex items-center gap-2 shrink-0">
+          <Link href="/dashboard" className="flex items-center gap-2 shrink-0">
             <span className="font-heading text-lg font-bold tracking-tight text-foreground-primary uppercase">
               WorkFrame
             </span>
@@ -112,6 +105,13 @@ export default function Navbar() {
                     className="block px-4 py-2.5 text-sm text-foreground-secondary hover:text-foreground-primary hover:bg-surface-overlay transition-colors"
                   >
                     My Profile
+                  </Link>
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setDropdownOpen(false)}
+                    className="block px-4 py-2.5 text-sm text-foreground-secondary hover:text-foreground-primary hover:bg-surface-overlay transition-colors"
+                  >
+                    Dashboard
                   </Link>
                   <button
                     onClick={handleSignOut}

@@ -241,6 +241,15 @@ function AdminPayroll() {
   const [formEffectiveDate, setFormEffectiveDate] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  // Edit form state
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editEmployeeId, setEditEmployeeId] = useState("");
+  const [editBaseSalary, setEditBaseSalary] = useState("");
+  const [editAllowances, setEditAllowances] = useState("");
+  const [editDeductions, setEditDeductions] = useState("");
+  const [editEffectiveDate, setEditEffectiveDate] = useState("");
+  const [editSubmitting, setEditSubmitting] = useState(false);
+
   const fetchSalaries = useCallback(async () => {
     try {
       const data = await apiFetch<AdminSalaryResponse>("/api/payroll");
@@ -262,7 +271,6 @@ function AdminPayroll() {
     setMessage(null);
 
     try {
-      // Parse allowance/deduction JSON or default to {}
       let allowances: Record<string, number> = {};
       let deductions: Record<string, number> = {};
 
@@ -286,11 +294,7 @@ function AdminPayroll() {
 
       setMessage({ type: "success", text: "Salary structure created." });
       setShowForm(false);
-      setFormEmployeeId("");
-      setFormBaseSalary("");
-      setFormAllowances("");
-      setFormDeductions("");
-      setFormEffectiveDate("");
+      resetCreateForm();
       fetchSalaries();
     } catch (err) {
       setMessage({ type: "error", text: err instanceof Error ? err.message : "Failed" });
@@ -299,15 +303,85 @@ function AdminPayroll() {
     }
   }
 
+  function resetCreateForm() {
+    setFormEmployeeId("");
+    setFormBaseSalary("");
+    setFormAllowances("");
+    setFormDeductions("");
+    setFormEffectiveDate("");
+  }
+
   async function openCreateForm() {
     setShowForm(true);
     setMessage(null);
-    // Fetch employee list for the dropdown
     try {
       const data = await apiFetch<{ users: { id: string; employeeId: string; profile: { fullName: string } | null }[] }>("/api/employees");
       setEmployees(data.users);
     } catch {
       /* best-effort */
+    }
+  }
+
+  function startEdit(salary: SalaryRecord) {
+    setEditingId(salary.id);
+    setEditEmployeeId(salary.employeeId);
+    setEditBaseSalary(salary.baseSalary.toString());
+    setEditAllowances(JSON.stringify(salary.allowances));
+    setEditDeductions(JSON.stringify(salary.deductions));
+    setEditEffectiveDate(new Date().toISOString().split("T")[0]); // today as new effective date
+    setMessage(null);
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setEditEmployeeId("");
+    setEditBaseSalary("");
+    setEditAllowances("");
+    setEditDeductions("");
+    setEditEffectiveDate("");
+  }
+
+  async function handleEditSubmit(e: React.FormEvent) {
+    e.preventDefault();
+
+    // Confirmation alert before saving
+    const confirmed = window.confirm(
+      "Are you sure you want to update this salary structure? This will create a new record with the current date as the effective date."
+    );
+    if (!confirmed) return;
+
+    setEditSubmitting(true);
+    setMessage(null);
+
+    try {
+      let allowances: Record<string, number> = {};
+      let deductions: Record<string, number> = {};
+
+      if (editAllowances.trim()) {
+        allowances = JSON.parse(editAllowances);
+      }
+      if (editDeductions.trim()) {
+        deductions = JSON.parse(editDeductions);
+      }
+
+      await apiFetch(`/api/payroll/${editingId}`, {
+        method: "PATCH",
+        body: {
+          employeeId: editEmployeeId,
+          baseSalary: parseFloat(editBaseSalary),
+          allowances,
+          deductions,
+          effectiveDate: editEffectiveDate,
+        },
+      });
+
+      setMessage({ type: "success", text: "Salary structure updated." });
+      cancelEdit();
+      fetchSalaries();
+    } catch (err) {
+      setMessage({ type: "error", text: err instanceof Error ? err.message : "Failed" });
+    } finally {
+      setEditSubmitting(false);
     }
   }
 
@@ -397,11 +471,68 @@ function AdminPayroll() {
         </form>
       )}
 
+      {/* Edit form */}
+      {editingId && (
+        <form onSubmit={handleEditSubmit} className="card space-y-4 border-accent/30">
+          <h3 className="section-title mb-2">Edit Salary Structure</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="label-tactical block mb-1.5">Base Salary ($)</label>
+              <input
+                type="number"
+                required
+                min="0"
+                step="0.01"
+                value={editBaseSalary}
+                onChange={(e) => setEditBaseSalary(e.target.value)}
+                className="input-field"
+              />
+            </div>
+            <div>
+              <label className="label-tactical block mb-1.5">Effective Date</label>
+              <input
+                type="date"
+                required
+                value={editEffectiveDate}
+                onChange={(e) => setEditEffectiveDate(e.target.value)}
+                className="input-field"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="label-tactical block mb-1.5">Allowances (JSON)</label>
+              <input
+                type="text"
+                value={editAllowances}
+                onChange={(e) => setEditAllowances(e.target.value)}
+                className="input-field font-mono text-xs"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="label-tactical block mb-1.5">Deductions (JSON)</label>
+              <input
+                type="text"
+                value={editDeductions}
+                onChange={(e) => setEditDeductions(e.target.value)}
+                className="input-field font-mono text-xs"
+              />
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <button type="submit" disabled={editSubmitting} className="btn-primary disabled:opacity-50 text-xs">
+              {editSubmitting ? "Updating..." : "Update Salary"}
+            </button>
+            <button type="button" onClick={cancelEdit} className="btn-ghost text-xs">
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
+
       {/* Salary table */}
       <div className="card">
         <div className="flex items-center justify-between mb-4">
           <h2 className="section-title">Payroll</h2>
-          {!showForm && (
+          {!showForm && !editingId && (
             <button onClick={openCreateForm} className="btn-primary text-xs">
               + Add Salary
             </button>
@@ -442,21 +573,29 @@ function AdminPayroll() {
                     <td className="py-2.5 text-foreground-primary font-medium">{formatCurrency(s.netSalary)}</td>
                     <td className="py-2.5 text-foreground-muted font-mono">{formatDate(s.effectiveDate)}</td>
                     <td className="py-2.5 text-right">
-                      <button
-                        onClick={async () => {
-                          try {
-                            await triggerPayslipDownload(
-                              `/api/payroll/me/payslip?employeeId=${s.employeeId}`,
-                              `payslip-${s.employeeId}.pdf`
-                            );
-                          } catch {
-                            /* best-effort */
-                          }
-                        }}
-                        className="label-tactical text-accent hover:text-accent-hover"
-                      >
-                        Payslip
-                      </button>
+                      <div className="flex items-center gap-3 justify-end">
+                        <button
+                          onClick={() => startEdit(s)}
+                          className="label-tactical text-accent hover:text-accent-hover"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={async () => {
+                            try {
+                              await triggerPayslipDownload(
+                                `/api/payroll/me/payslip?employeeId=${s.employeeId}`,
+                                `payslip-${s.employeeId}.pdf`
+                              );
+                            } catch {
+                              /* best-effort */
+                            }
+                          }}
+                          className="label-tactical text-foreground-muted hover:text-foreground-secondary"
+                        >
+                          Payslip
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
