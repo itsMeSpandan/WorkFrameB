@@ -1,3 +1,96 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ─── Dark Mode Foundation ───────────────────────────────────────────────── */
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-surface-base text-foreground-primary font-body antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ─── Scrollbar — minimal, dark ─────────────────────────────────────── */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-surface-base;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-surface-overlay rounded-sm;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-surface-border;
+  }
+
+  /* ─── Selection ─────────────────────────────────────────────────────── */
+  ::selection {
+    @apply bg-accent/30 text-white;
+  }
+
+  /* ─── Focus rings — sharp, tactical ─────────────────────────────────── */
+  *:focus-visible {
+    @apply outline-2 outline-offset-2 outline-accent;
+  }
+
+  /* ─── Form inputs — dark native ─────────────────────────────────────── */
+  input, textarea, select {
+    @apply bg-surface-raised text-foreground-primary border border-surface-border
+           placeholder:text-foreground-muted;
+  }
+}
+
+/* ─── Utility Classes ────────────────────────────────────────────────────── */
+
+@layer components {
+  /* Card container */
+  .card {
+    @apply bg-surface-raised border border-surface-border p-6;
+  }
+
+  /* Section heading */
+  .section-title {
+    @apply font-heading text-lg font-semibold tracking-tight text-foreground-primary uppercase;
+  }
+
+  /* Tactical label — widened tracking, muted */
+  .label-tactical {
+    @apply text-[10px] font-medium uppercase tracking-tactical text-foreground-muted;
+  }
+
+  /* Primary action button — accent yellow */
+  .btn-primary {
+    @apply px-4 py-2 text-sm font-semibold bg-accent text-surface-base
+           hover:bg-accent-hover active:bg-accent
+           transition-colors duration-100;
+  }
+
+  /* Ghost button */
+  .btn-ghost {
+    @apply px-4 py-2 text-sm font-medium text-foreground-secondary
+           hover:text-foreground-primary hover:bg-surface-overlay
+           transition-colors duration-100;
+  }
+
+  /* Danger button */
+  .btn-danger {
+    @apply px-4 py-2 text-sm font-semibold bg-danger text-white
+           hover:bg-red-600 active:bg-red-700
+           transition-colors duration-100;
+  }
+
+  /* Input field */
+  .input-field {
+    @apply w-full px-3 py-2 text-sm bg-surface-raised border border-surface-border
+           text-foreground-primary placeholder:text-foreground-muted
+           focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/30
+           transition-colors duration-100;
+  }
+}
