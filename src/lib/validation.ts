@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+// ─── Auth ────────────────────────────────────────────────────────────────────
+
 export const signupSchema = z.object({
   employeeId: z
     .string()
@@ -17,7 +19,6 @@ export const signupSchema = z.object({
       "Password must contain at least one special character"
     ),
   // Role is always EMPLOYEE at signup. Admin accounts are created by existing admins.
-  // role field is intentionally omitted — enforced server-side.
 });
 
 export const signinSchema = z.object({
@@ -27,4 +28,54 @@ export const signinSchema = z.object({
 
 export const verifyEmailSchema = z.object({
   token: z.string().min(1, "Verification token is required"),
+});
+
+// ─── Profile ─────────────────────────────────────────────────────────────────
+
+/** Schema for employee self-edit (limited fields) */
+export const employeeProfileUpdateSchema = z.object({
+  phone: z.string().max(20).optional(),
+  address: z.string().max(500).optional(),
+  profilePictureUrl: z.string().url().optional().or(z.literal("")),
+});
+
+/** Schema for admin full-field edit */
+export const adminProfileUpdateSchema = z.object({
+  fullName: z.string().min(1).max(200).optional(),
+  phone: z.string().max(20).optional(),
+  address: z.string().max(500).optional(),
+  jobTitle: z.string().max(100).optional(),
+  department: z.string().max(100).optional(),
+  profilePictureUrl: z.string().url().optional().or(z.literal("")),
+});
+
+// ─── Attendance ──────────────────────────────────────────────────────────────
+
+export const attendanceQuerySchema = z.object({
+  employeeId: z.string().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  range: z.enum(["daily", "weekly"]).optional().default("weekly"),
+});
+
+// ─── Leave ───────────────────────────────────────────────────────────────────
+
+export const leaveRequestSchema = z.object({
+  leaveType: z.enum(["PAID", "SICK", "UNPAID"]),
+  startDate: z.string().min(1, "Start date is required"),
+  endDate: z.string().min(1, "End date is required"),
+  remarks: z.string().max(1000).optional(),
+}).refine(
+  (data) => new Date(data.endDate) >= new Date(data.startDate),
+  { message: "End date must be on or after start date", path: ["endDate"] }
+);
+
+export const leaveDecisionSchema = z.object({
+  status: z.enum(["APPROVED", "REJECTED"]),
+  reviewerComment: z.string().max(1000).optional(),
+});
+
+export const leaveQuerySchema = z.object({
+  status: z.enum(["PENDING", "APPROVED", "REJECTED"]).optional(),
+  employeeId: z.string().optional(),
 });
