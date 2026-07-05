@@ -63,7 +63,8 @@ export async function POST(request: NextRequest) {
     expiresAt.setDate(expiresAt.getDate() + REFRESH_TOKEN_DAYS);
 
     await prisma.$transaction(async (tx) => {
-      await tx.refreshToken.delete({ where: { id: dbToken.id } });
+      // Delete ALL refresh tokens for this user to avoid unique constraint conflicts
+      await tx.refreshToken.deleteMany({ where: { userId: user.id } });
       await tx.refreshToken.create({
         data: {
           userId: user.id,

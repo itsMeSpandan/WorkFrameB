@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { signupSchema } from "@/lib/validation";
 import { isRateLimited } from "@/lib/rate-limit";
@@ -120,28 +119,10 @@ export async function POST(request: NextRequest) {
       return { company, user, loginId };
     });
 
-    // Generate single-use verification token (24h expiry)
-    const token = crypto.randomBytes(32).toString("hex");
-    const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getHours() + 24);
-
-    await prisma.verificationToken.create({
-      data: {
-        userId: result.user.id,
-        token,
-        expiresAt,
-      },
-    });
-
-    // TODO: Replace with real email service (SendGrid / SES / Postmark)
-    console.log(
-      `\n[WorkFrame] Email verification token for ${email}:\n${token}\n`
-    );
-
     return NextResponse.json(
       {
         message:
-          `Account created successfully. Your Login ID is: ${result.loginId}. Please check your email to verify your account.`,
+          `Account created successfully. Your Login ID is: ${result.loginId}. Please verify your email with the OTP sent.`,
         userId: result.user.id,
         loginId: result.loginId,
       },

@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 
 const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET!;
 const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET!;
@@ -18,7 +19,8 @@ export function signAccessToken(payload: JwtPayload): string {
 }
 
 export function signRefreshToken(payload: JwtPayload): string {
-  return jwt.sign(payload, REFRESH_SECRET, { expiresIn: REFRESH_EXPIRY });
+  // Include a random jti to ensure each token is unique (prevents P2002 race conditions)
+  return jwt.sign({ ...payload, jti: crypto.randomUUID() }, REFRESH_SECRET, { expiresIn: REFRESH_EXPIRY });
 }
 
 export function verifyAccessToken(token: string): JwtPayload {
