@@ -24,9 +24,11 @@ export function signRefreshToken(payload: JwtPayload): string {
 }
 
 export function verifyAccessToken(token: string): JwtPayload {
+  // jwt.verify returns string | JwtPayload; we know ACCESS_SECRET only signs JwtPayload payloads
   return jwt.verify(token, ACCESS_SECRET) as JwtPayload;
 }
 
 export function verifyRefreshToken(token: string): JwtPayload {
+  // jwt.verify returns string | JwtPayload; we know REFRESH_SECRET only signs JwtPayload payloads
   return jwt.verify(token, REFRESH_SECRET) as JwtPayload;
 }

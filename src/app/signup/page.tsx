@@ -164,10 +164,10 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="min-h-screen bg-surface-base flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-lg bg-surface-raised border border-surface-border rounded-lg p-6">
+    <div className="min-h-screen relative z-10 flex items-center justify-center px-4 py-8">
+      <div className="w-full max-w-lg rounded-lg p-6 backdrop-blur-xl bg-black/60 border border-white/10">
         {/* Logo */}
-        <div className="w-full h-16 border border-surface-border rounded flex items-center justify-center mb-6">
+        <div className="w-full h-16 bg-[#121212] border border-surface-border rounded flex items-center justify-center mb-6">
           <span className="font-heading text-xl font-bold tracking-tight">
             <span className="text-accent">W</span><span className="text-foreground-primary">orkFrame</span>
           </span>
@@ -333,7 +333,7 @@ export default function SignUpPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-6 py-3 bg-accent hover:bg-accent-hover text-surface-base font-bold text-sm rounded transition-colors disabled:opacity-50"
+              className="w-full mt-6 py-3 bg-accent hover:bg-accent-hover text-surface-base font-bold text-sm rounded transition-colors shadow-none"
             >
               {loading ? "Creating Account..." : "Sign Up"}
             </button>
@@ -388,7 +388,7 @@ export default function SignUpPage() {
                       onChange={(e) => handleOtpChange(i, e.target.value)}
                       onKeyDown={(e) => handleOtpKeyDown(i, e)}
                       onPaste={handleOtpPaste}
-                      className="w-11 h-12 text-center text-lg font-mono font-bold bg-surface-base border border-surface-border rounded focus:border-accent focus:ring-1 focus:ring-accent/30 transition-colors"
+                      className="w-11 h-12 text-center text-lg font-mono font-bold bg-[#121212] border border-surface-border rounded focus:border-accent focus:ring-1 focus:ring-accent/30 transition-colors"
                       required
                     />
                   ))}
@@ -397,7 +397,7 @@ export default function SignUpPage() {
                 <button
                   type="submit"
                   disabled={otpLoading || otp.length !== 6}
-                  className="w-full py-3 bg-accent hover:bg-accent-hover text-surface-base font-bold text-sm rounded transition-colors disabled:opacity-50"
+                  className="w-full py-3 bg-accent hover:bg-accent-hover text-surface-base font-bold text-sm rounded transition-colors shadow-none"
                 >
                   {otpLoading ? "Verifying..." : "Verify OTP"}
                 </button>
@@ -413,7 +413,7 @@ export default function SignUpPage() {
                       type="button"
                       onClick={handleResendOtp}
                       disabled={otpSending}
-                      className="text-xs text-accent hover:text-accent-hover transition-colors disabled:opacity-50"
+                      className="text-xs text-accent hover:text-accent-hover transition-colors"
                     >
                       {otpSending ? "Sending..." : "Resend OTP"}
                     </button>

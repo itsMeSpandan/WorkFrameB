@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { signupSchema } from "@/lib/validation";
 import { isRateLimited } from "@/lib/rate-limit";
 import { deriveCompanyInitials, buildLoginId, parseFullName } from "@/lib/login-id";
+import { handleApiError } from "@/lib/rbac";
 
 const SALT_ROUNDS = 12;
 
@@ -129,10 +130,6 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-    console.error("Signup error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }

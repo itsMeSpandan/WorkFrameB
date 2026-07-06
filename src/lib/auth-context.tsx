@@ -58,7 +58,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setLoading(false);
             return;
           }
-        } catch {}
+        } catch {
+          // Malformed or expired token — fall through to silent refresh
+        }
       }
 
       // Attempt silent refresh to restore session

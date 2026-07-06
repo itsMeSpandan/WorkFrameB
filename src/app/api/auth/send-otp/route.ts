@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { sendOtpSchema } from "@/lib/validation";
 import { sendOtpEmail } from "@/lib/email";
 import { isRateLimited } from "@/lib/rate-limit";
+import { handleApiError } from "@/lib/rbac";
 
 /**
  * POST /api/auth/send-otp
@@ -91,10 +92,6 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("Send OTP error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }

@@ -10,9 +10,32 @@ interface SendEmailOptions {
 }
 
 export async function sendEmail({ to, subject, html }: SendEmailOptions): Promise<void> {
-  // Placeholder — replace with a real email provider integration.
-  console.log(`[EMAIL] To: ${to} | Subject: ${subject}`);
-  console.log(`[EMAIL] Body: ${html}`);
+  const serviceId = process.env.EMAILJS_SERVICE_ID;
+  const templateId = process.env.EMAILJS_TRANSACTIONAL_TEMPLATE_ID;
+  const publicKey = process.env.EMAILJS_PUBLIC_KEY;
+  const privateKey = process.env.EMAILJS_PRIVATE_KEY;
+
+  if (!serviceId || !templateId || !publicKey || !privateKey) {
+    // Dev fallback: log to console when EmailJS is not configured
+    // eslint-disable-next-line no-console
+    console.log(`[EMAIL] To: ${to} | Subject: ${subject}`);
+    // eslint-disable-next-line no-console
+    console.log(`[EMAIL] Body: ${html}`);
+    return;
+  }
+
+  const emailjs = (await import("@emailjs/nodejs")).default;
+  await emailjs.send(
+    serviceId,
+    templateId,
+    {
+      to_email: to,
+      subject,
+      html_content: html,
+      from_name: "WorkFrame HRMS",
+    },
+    { publicKey, privateKey }
+  );
 }
 
 // ─── EmailJS OTP Integration ─────────────────────────────────────────────────
@@ -36,8 +59,10 @@ export async function sendOtpEmail({
   const privateKey = process.env.EMAILJS_PRIVATE_KEY;
 
   if (!serviceId || !templateId || !publicKey || !privateKey) {
-    // Dev fallback: log OTP to console
+    // Dev fallback: log OTP to console when EmailJS is not configured
+    // eslint-disable-next-line no-console
     console.log(`\n[OTP] Email: ${to}`);
+    // eslint-disable-next-line no-console
     console.log(`[OTP] Code: ${otpCode}\n`);
     return;
   }
